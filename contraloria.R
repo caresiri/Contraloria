@@ -12,13 +12,13 @@ library(haven) # for reading stata files
 library(stringi)
 library(dplyr)
 #### Extraer Datos ####
-SIACSICOP1519 <- read_dta("/Users/carlossiri/Dropbox/Contraloria/adjudicacionesycompras.dta") # Read Stata data into R
+#SIACSICOP1519 <- read_dta("") # Read Stata data into R when needed
 SIACSICOP1519$DESC_BIEN_SERVICIO <- tolower(SIACSICOP1519$DESC_BIEN_SERVICIO) #convert to lower case
 SIACSICOP1519$DESC_BIEN_SERVICIO <- stri_trans_general(SIACSICOP1519$DESC_BIEN_SERVICIO, id = "Latin-ASCII") # eliminate accents
 
 corpus <- VCorpus(VectorSource(SIACSICOP1519$DESC_BIEN_SERVICIO)) #Generación de corpus de Descripción de Bienes y Servicios del SIAC
 
-### Cleaningdata ###
+#### Cleaningdata ####
 toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x)) #Eliminar caracteres especiales
 corpus <- tm_map(corpus, toSpace, "/")#Eliminar caracteres especiales
 corpus <- tm_map(corpus, toSpace, "@")#Eliminar caracteres especiales
@@ -41,19 +41,19 @@ corpus <- tm_map(corpus, stripWhitespace) # Eliminate extra white spaces
 #corpus <- tm_map(corpus, stemDocument, language = "spanish")
 
 
-### Term document Matrix ###
+#### Term document Matrix ####
 dtm <- TermDocumentMatrix(corpus)
 m <- as.matrix(dtm) # as matrix
 v <- sort(rowSums(m),decreasing=TRUE) # sort by sum
-#d <- data.frame(word = names(v),freq=v) # frequency data frame
+d <- data.frame(word = names(v),freq=v) # frequency data frame
 head(d, 10) #display top 10
+d$ID <- seq.int(nrow(d))
+d$eliminate<-""
+d$comentarios<- ""
 
+####Proceso iterativo####
+#para decidir que terminos eliminar y con que condiciones 
 
-#Proceso iterativo
-
-#d$ID <- seq.int(nrow(d))
-#d$eliminate<-""
-#d$comentarios<- ""
 d[c(13,17,22,51,74,92,111,112,130,137,140,163,177,181,203,214,293,598),4] <- "Si"
 d[c(6,10,29,39,40,43,53,50,62,91,97,99,104,114,116,128,132,134,136,146),4] <- "Talvez"
 
@@ -62,6 +62,7 @@ d[6,5]<- "Corr thhn(0.48) & awg(0.42)"
 d[163,5]<- "Corr pizarra(0.69)"
 d[17,5]<- "Corr adhesiva(0.53)[eliminado] trasparente(0.31)"
 d[34,5]<- "Corr almohadilla(0.48)[eliminado] trodat(0.42)[eliminado] automatico(0.33)[eliminado condicionalmente] grm(0.31)[eliminado]"
+
 # Word Cloud (optional vizualization)
 set.seed(1234) 
 wordcloud(words = slice(d, -1:-155)$word, freq = slice(d, -1:-155)$freq, min.freq = 1,
@@ -71,6 +72,7 @@ wordcloud(words = slice(d, -1:-155)$word, freq = slice(d, -1:-155)$freq, min.fre
 #### Eliminated data ####
 techdata <- SIACSICOP1519[!grepl(paste(filter(d, eliminate == "Si")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO),]
 ## Especiales
+
 #MARCADOR SIN RELOJ
 techdata <- techdata[!grepl('(^(?=.*\\bmarcador\\b)(?!.*\\breloj\\b))', techdata$DESC_BIEN_SERVICIO, perl = TRUE),] 
 
