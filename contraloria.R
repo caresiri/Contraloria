@@ -36,14 +36,38 @@ cleancorpus <- function(a) {
   #corpus <- tm_map(corpus, stemDocument, language = "spanish")
   #### Term document Matrix ####
   dtm <- TermDocumentMatrix(corpus)
-  d0<-d
   m <- as.matrix(dtm) # as matrix
   v <- sort(rowSums(m),decreasing=TRUE) # sort by sum
   d <- data.frame(word = names(v),freq=v) # frequency data frame
   head(d, 10) #display top 10
-}
+  return(d)
+} #function broken FIX
 
-cleancorpus(SIACSICOP1519)
+corpus <- VCorpus(VectorSource(SIACSICOP1519$DESC_BIEN_SERVICIO)) #Generación de corpus de Descripción de Bienes y Servicios del SIAC
+toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x)) #Eliminar caracteres especiales
+corpus <- tm_map(corpus, toSpace, "/")#Eliminar caracteres especiales
+corpus <- tm_map(corpus, toSpace, "@")#Eliminar caracteres especiales
+corpus <- tm_map(corpus, toSpace, "\\|")#Eliminar caracteres especiales
+corpus <- tm_map(corpus, removeNumbers) # Remover numeros
+corpus <- tm_map(corpus, removeWords, stopwords("spanish")) # Remover stopwords de español
+corpus <- tm_map(corpus, removePunctuation) # Remove puntuación
+corpus <- tm_map(corpus, stripWhitespace) # Eliminate extra white spaces
+# Remove your own stop word
+# specify your stopwords as a character vector
+#corpus <- tm_map(corpus, removeWords, c("blabla1", "blabla2")) 
+# estos comandos ya fueron ejecutados desde la base de datos, no es necesario repetirlo
+#corpus <- tm_map(corpus, content_transformer(tolower)) # Convertir texto a minuscula
+#removeAccents <- content_transformer(function(x) chartr("áéíóú", "aeiou", x))# Remove Accents
+#corpus <- tm_map(corpus, removeAccents)# Remove Accents
+# Text stemming
+#corpus <- tm_map(corpus, stemDocument, language = "spanish")
+#### Term document Matrix ####
+dtm <- TermDocumentMatrix(corpus)
+m <- as.matrix(dtm) # as matrix
+v <- sort(rowSums(m),decreasing=TRUE) # sort by sum
+d <- data.frame(word = names(v),freq=v) # frequency data frame
+head(d, 10) #display top 10
+
 ####Primera iteración  ####
 #para decidir que terminos eliminar y con que condiciones 
 d$ID <- seq.int(nrow(d))
@@ -69,14 +93,44 @@ techdata <- techdata[!grepl('(^(?=.*\\bsello\\b)(?=.*\\bfechador\\b))', techdata
 techdata <- techdata[!grepl('(^(?=.*\\bsello\\b)(?=.*\\bprinter\\b))', techdata$DESC_BIEN_SERVICIO, perl = TRUE),] 
 techdata <- techdata[!grepl('(^(?=.*\\bsello\\b)(?=.*\\brepuesto\\b))', techdata$DESC_BIEN_SERVICIO, perl = TRUE),] 
 
-cleancorpus(techdata)
+
+####Segunda Iteración####
+d0<-d
+#cleancorpus(techdata) FUNCTION NOT WORKING DO IT MANUALLY FOR NOW
+
+corpus <- VCorpus(VectorSource(techdata$DESC_BIEN_SERVICIO)) #Generación de corpus de Descripción de Bienes y Servicios del SIAC
+toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x)) #Eliminar caracteres especiales
+corpus <- tm_map(corpus, toSpace, "/")#Eliminar caracteres especiales
+corpus <- tm_map(corpus, toSpace, "@")#Eliminar caracteres especiales
+corpus <- tm_map(corpus, toSpace, "\\|")#Eliminar caracteres especiales
+corpus <- tm_map(corpus, removeNumbers) # Remover numeros
+corpus <- tm_map(corpus, removeWords, stopwords("spanish")) # Remover stopwords de español
+corpus <- tm_map(corpus, removePunctuation) # Remove puntuación
+corpus <- tm_map(corpus, stripWhitespace) # Eliminate extra white spaces
+
+#### Term document Matrix ####
+dtm <- TermDocumentMatrix(corpus)
+m <- as.matrix(dtm) # as matrix
+v <- sort(rowSums(m),decreasing=TRUE) # sort by sum
+d <- data.frame(word = names(v),freq=v) # frequency data frame
+head(d, 10) #display top 10
+d$ID <- seq.int(nrow(d))
+d <- merge(d, d0[,c("word", "freq", "eliminate", "comentarios", "ID")], by = "word", all.x = TRUE)
+d <- d[order(-d[,2]),] # order by frequency
+rownames(d) <- NULL # reset column order
+
+#### Eliminated data ####
+d[c(602),5] <- "Si"
+#Papel e impresora puede ser tecnico
+techdata <- techdata[!grepl('(^(?=.*\\bpapel\\b)(?!.*\\bimpresora\\b))', techdata$DESC_BIEN_SERVICIO, perl = TRUE),] 
+techdata <- techdata[!grepl(paste(filter(d, eliminate == "Si")$word, collapse="|"), techdata$DESC_BIEN_SERVICIO),]
+
 
 #### Seccion de trabajo---- opcionales ####
-
-term <- "tinta"
+term <- "papel"
 Check <- techdata[grepl(term, techdata$DESC_BIEN_SERVICIO, perl = TRUE),] # check words in database
 Check <- as.data.frame(Check$DESC_BIEN_SERVICIO)
-findAssocs(dtm, terms = term, corlimit = 0.3)
+findAssocs(dtm, terms = term, corlimit = 0.2)
 
 # Word Cloud (optional vizualization)
 set.seed(1234) 
