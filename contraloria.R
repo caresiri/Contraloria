@@ -16,33 +16,6 @@ library(dplyr)
 #SIACSICOP1519 <- read_dta("") # Read Stata data into R when needed
 SIACSICOP1519$DESC_BIEN_SERVICIO <- tolower(SIACSICOP1519$DESC_BIEN_SERVICIO) #convert to lower case
 SIACSICOP1519$DESC_BIEN_SERVICIO <- stri_trans_general(SIACSICOP1519$DESC_BIEN_SERVICIO, id = "Latin-ASCII") # eliminate accents
-cleancorpus <- function(a) {
-  corpus <- VCorpus(VectorSource(a$DESC_BIEN_SERVICIO)) #Generación de corpus de Descripción de Bienes y Servicios del SIAC
-  toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x)) #Eliminar caracteres especiales
-  corpus <- tm_map(corpus, toSpace, "/")#Eliminar caracteres especiales
-  corpus <- tm_map(corpus, toSpace, "@")#Eliminar caracteres especiales
-  corpus <- tm_map(corpus, toSpace, "\\|")#Eliminar caracteres especiales
-  corpus <- tm_map(corpus, removeNumbers) # Remover numeros
-  corpus <- tm_map(corpus, removeWords, stopwords("spanish")) # Remover stopwords de español
-  corpus <- tm_map(corpus, removePunctuation) # Remove puntuación
-  corpus <- tm_map(corpus, stripWhitespace) # Eliminate extra white spaces
-  # Remove your own stop word
-  # specify your stopwords as a character vector
-  #corpus <- tm_map(corpus, removeWords, c("blabla1", "blabla2")) 
-  # estos comandos ya fueron ejecutados desde la base de datos, no es necesario repetirlo
-  #corpus <- tm_map(corpus, content_transformer(tolower)) # Convertir texto a minuscula
-  #removeAccents <- content_transformer(function(x) chartr("áéíóú", "aeiou", x))# Remove Accents
-  #corpus <- tm_map(corpus, removeAccents)# Remove Accents
-  # Text stemming
-  #corpus <- tm_map(corpus, stemDocument, language = "spanish")
-  #### Term document Matrix ####
-  #dtm <- TermDocumentMatrix(corpus)
-  #m <- as.matrix(dtm) # as matrix
-  #v <- sort(rowSums(m),decreasing=TRUE) # sort by sum
-  #d <- data.frame(word = names(v),freq=v) # frequency data frame
-  #head(d, 10) #display top 10
-  return(corpus)
-} #function broken FIX
 
 corpus <- VCorpus(VectorSource(SIACSICOP1519$DESC_BIEN_SERVICIO)) #Generación de corpus de Descripción de Bienes y Servicios del SIAC
 toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x)) #Eliminar caracteres especiales
@@ -74,7 +47,7 @@ head(d, 10) #display top 10
 ####Primera iteración  ####
 #para decidir que terminos eliminar y con que condiciones 
 ### Eliminated data ###
-SIACSICOP1519$tech <- ifelse(grepl(paste(filter(eliminate, eliminate == "Si")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),"No","No_Se")
+#SIACSICOP1519$tech <- ifelse(grepl(paste(filter(eliminate, eliminate == "Si")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),"No","No_Se")
 ## Especiales
 SIACSICOP1519$tech[grepl('(^(?=.*\\bmarcador\\b)(?!.*\\breloj\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"#MARCADOR SIN RELOJ
 SIACSICOP1519$tech[grepl('(^(?=.*\\bsello\\b)(?=.*\\bautomatico\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
@@ -89,6 +62,8 @@ SIACSICOP1519$tech[grepl('(^(?=.*\\bplastico\\b)(?=.*\\bforro\\b))', SIACSICOP15
 #### Categorización de Bienes y Servicios segun SICOP ####
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED <- SIACSICOP1519$CAT_BIEN_SERVICIO
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.impresora\\b))',  SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Equipo informático y accesorios"
+SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\busb\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Equipo informático y accesorios"
+SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\bportatil\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Equipo informático y accesorios"
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\blicencia\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Software"
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\blicencias\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Software"
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\bsoftware\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Software"
@@ -103,8 +78,8 @@ SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\impresora multifunciona
                                                SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Equipo informático y accesorios"
 save(SIACSICOP1519, file = "SIACSICOP1519.rda")
 #### Seccion de trabajo---- opcionales ####
-term <- "software"
-Check <- techdata[grepl(term, techdata$DESC_BIEN_SERVICIO, perl = TRUE),] # check words in database
+term <- "cinta"
+Check <- SIACSICOP1519[grepl(term, SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),] # check words in database
 Check <- as.data.frame(Check$DESC_BIEN_SERVICIO)
 findAssocs(dtm, terms = term, corlimit = 0.2)
 
@@ -115,9 +90,8 @@ wordcloud(words = slice(d, -1:-155)$word, freq = slice(d, -1:-155)$freq, min.fre
           colors=brewer.pal(8, "Dark2"))
 
 #### add data to eliminate
-eliminate <- rbind(eliminate, d[415,])
 eliminate[41,4] <-"Si"
-
+eliminate <- rbind(eliminate, d[249,1:5])
 
 
 #### NUEVAS VARIABLES####
