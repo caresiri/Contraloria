@@ -1,8 +1,8 @@
 #### Install new packages if necesary ####
-install.packages("tm")  # for text mining
-install.packages("SnowballC") # for text stemming
-install.packages("wordcloud") # word-cloud generator 
-install.packages("RColorBrewer") # color palettes
+#install.packages("tm")  # for text mining
+#install.packages("SnowballC") # for text stemming
+#install.packages("wordcloud") # word-cloud generator 
+#install.packages("RColorBrewer") # color palettes
 #### Load Packages ####
 library("tm")
 library("SnowballC")
@@ -27,16 +27,6 @@ corpus <- corpus %>% tm_map(toSpace, "/") %>%
   tm_map(removePunctuation)  %>% # Remove puntuación
   tm_map(stripWhitespace) # Eliminate extra white spaces  
   
-
-# Remove your own stop word
-# specify your stopwords as a character vector
-#corpus <- tm_map(corpus, removeWords, c("blabla1", "blabla2")) 
-# estos comandos ya fueron ejecutados desde la base de datos, no es necesario repetirlo
-#corpus <- tm_map(corpus, content_transformer(tolower)) # Convertir texto a minuscula
-#removeAccents <- content_transformer(function(x) chartr("áéíóú", "aeiou", x))# Remove Accents
-#corpus <- tm_map(corpus, removeAccents)# Remove Accents
-# Text stemming
-#corpus <- tm_map(corpus, stemDocument, language = "spanish")
 #### Term document Matrix ####
 dtm <- TermDocumentMatrix(corpus)
 m <- as.matrix(dtm) # as matrix  # saved m as m0.rdata
@@ -47,17 +37,15 @@ head(d, 10) #display top 10
 ####Primera iteración  ####
 #para decidir que terminos eliminar y con que condiciones 
 ### Eliminated data ###
-#SIACSICOP1519$tech <- ifelse(grepl(paste(filter(eliminate, eliminate == "Si")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),"No","No_Se")
+SIACSICOP1519$tech <- ifelse(grepl(paste(filter(eliminate, eliminate == "Si")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),"No","No_Se")
 ## Especiales
 SIACSICOP1519$tech[grepl('(^(?=.*\\bmarcador\\b)(?!.*\\breloj\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"#MARCADOR SIN RELOJ
-SIACSICOP1519$tech[grepl('(^(?=.*\\bsello\\b)(?=.*\\bautomatico\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
-SIACSICOP1519$tech[grepl('(^(?=.*\\bsello\\b)(?=.*\\bfechador\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
-SIACSICOP1519$tech[grepl('(^(?=.*\\bsello\\b)(?=.*\\bprinter\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
-SIACSICOP1519$tech[grepl('(^(?=.*\\bsello\\b)(?=.*\\brepuesto\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
-SIACSICOP1519$tech[grepl('(^(?=.*\\bpapel\\b)(?!.*\\bimpresora\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No" # dejar Papel e impresora puede ser tecnico
-SIACSICOP1519$tech[grepl('(^(?=.*\\bplastico\\b)(?=.*\\badhesivo\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
-SIACSICOP1519$tech[grepl('(^(?=.*\\bplastico\\b)(?=.*\\brollo\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
-SIACSICOP1519$tech[grepl('(^(?=.*\\bplastico\\b)(?=.*\\bforro\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
+
+for(i in 1:nrow(mining))
+{
+  SIACSICOP1519$tech[grepl(paste("(^(?=.*\\b",as.String(mining[i,1]), "\\b)(?=.*\\b", as.String(mining[i,2]), "\\b))", sep = "")
+                           , SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
+}
 
 #### Categorización de Bienes y Servicios segun SICOP ####
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED <- SIACSICOP1519$CAT_BIEN_SERVICIO
@@ -80,10 +68,23 @@ save(SIACSICOP1519, file = "SIACSICOP1519.rda")
 
 
 #### Seccion de trabajo---- opcionales ####
-term <- "cinta"
+term <- "sello"
 Check <- SIACSICOP1519[grepl(term, SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),] # check words in database
-Check <- as.data.frame(Check$DESC_BIEN_SERVICIO)
+Check  <- Check %>% select(DESC_BIEN_SERVICIO, tech)
 findAssocs(dtm, terms = term, corlimit = 0.2)
+
+SIACSICOP1519$tech[grepl(paste("(^(?=.*\\b",as.String(mining[3,1]), "\\b)(?=.*\\b", as.String(mining[3,2]), "\\b))", sep = "")
+                         , SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
+
+ifelse(stri_detect(SIACSICOP1519$DESC_BIEN_SERVICIO, 
+                   regex = (paste(c(mining[3,1], mining[3,2]), collapse="|"))),SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED == "No", SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED == "No_Se")
+#paste('(^(?=.*\\b,]')
+
+#'(^(?=.*\\bsello\\b)(?=.*\\bprinter\\b))'
+
+#str_detect(payload, paste(c("create", "drop", "select"),collapse = '|')
+
+
 
 #### add data to d
 d[6,4] <-"Si"

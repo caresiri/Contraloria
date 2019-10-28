@@ -1,3 +1,19 @@
+#### Install new packages if necesary ####
+#install.packages("tm")  # for text mining
+#install.packages("SnowballC") # for text stemming
+#install.packages("wordcloud") # word-cloud generator 
+#install.packages("RColorBrewer") # color palettes
+#### Load Packages ####
+library("tm")
+library("SnowballC")
+library("wordcloud")
+library("RColorBrewer")
+library(haven) # for reading stata files
+library(stringi)
+library(dplyr)
+
+
+load("~/Dropbox/Contraloria/Text Mining R/CGR/SIACSICOP1519.Rda")
 #### Seccion de trabajo---- opcionales ####
 term <- "sello"
 Check <- SIACSICOP1519[grepl(term, SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),] # check words in database
@@ -6,9 +22,9 @@ findAssocs(dtm, terms = term, corlimit = 0.2)
 
 #### add data to d
 d[6,4] <-"Si"
+write.xlsx(d, "d.xlsx")
 
-
-####PrimeraX iteración  ####
+####Primera iteración  ####
 #para decidir que terminos eliminar y con que condiciones 
 ### Eliminated data ###
 SIACSICOP1519$tech <- ifelse(grepl(paste(filter(eliminate, eliminate == "Si")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),"No","No_Se")
@@ -46,4 +62,3 @@ wordcloud(words = slice(d, -1:-155)$word, freq = slice(d, -1:-155)$freq, min.fre
           max.words=200, random.order=FALSE, rot.per=0.35, 
           colors=brewer.pal(8, "Dark2"))
 
-write.xlsx(d, "d.xlsx")
