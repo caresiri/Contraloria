@@ -12,7 +12,7 @@ library(haven) # for reading stata files
 library(stringi)
 library(dplyr)
 
-
+#Load data
 load("~/Dropbox/Contraloria/Text Mining R/CGR/SIACSICOP1519.Rda")
 #### Seccion de trabajo---- opcionales ####
 term <- "sello"
