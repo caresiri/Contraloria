@@ -77,21 +77,22 @@ SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\servicios\\b))',
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\impresora multifuncional(fax, copiadora,escaner)\\b))', 
                                                SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Equipo informático y accesorios"
 save(SIACSICOP1519, file = "SIACSICOP1519.rda")
+
+
 #### Seccion de trabajo---- opcionales ####
 term <- "cinta"
 Check <- SIACSICOP1519[grepl(term, SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),] # check words in database
 Check <- as.data.frame(Check$DESC_BIEN_SERVICIO)
 findAssocs(dtm, terms = term, corlimit = 0.2)
 
+#### add data to d
+d[6,4] <-"Si"
+
 # Word Cloud (optional vizualization)
 set.seed(1234) 
 wordcloud(words = slice(d, -1:-155)$word, freq = slice(d, -1:-155)$freq, min.freq = 1,
           max.words=200, random.order=FALSE, rot.per=0.35, 
           colors=brewer.pal(8, "Dark2"))
-
-#### add data to eliminate
-eliminate[41,4] <-"Si"
-eliminate <- rbind(eliminate, d[249,1:5])
 
 
 #### NUEVAS VARIABLES####
@@ -107,4 +108,4 @@ CODIGO_IDENTIFICACION <- Reporte_Catálogo_de_Productos[, c("CODIGO_IDENTIFICACI
 CODIGO_IDENTIFICACION <- CODIGO_IDENTIFICACION %>% distinct()
 SIACSICOP1519 <- merge(x = SIACSICOP1519, y = CODIGO_IDENTIFICACION[, c("CODIGO_IDENTIFICACION", "NOMBRE_IDENTIFICACIÓN")], by = "CODIGO_IDENTIFICACION", all.x = TRUE)
 
-
+write.xlsx(d, "d.xlsx")
