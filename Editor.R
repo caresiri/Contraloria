@@ -1,32 +1,53 @@
-#### Install new packages if necesary ####
-#install.packages("tm")  # for text mining
-#install.packages("SnowballC") # for text stemming
-#install.packages("wordcloud") # word-cloud generator 
-#install.packages("RColorBrewer") # color palettes
-#### Load Packages ####
-library("tm")
-library("SnowballC")
-library("wordcloud")
-library("RColorBrewer")
-library(haven) # for reading stata files
-library(stringi)
+#install.packages('dplyr')
+#install.packages('tidytext')
+#install.packages('tidyr')
+#install.packages('widyr')
 library(dplyr)
-
-#Load data
+library(tidytext)
+library(tidyr)
+library(widyr)
+####Load data####
 load("~/Dropbox/Contraloria/Text Mining R/CGR/SIACSICOP1519.Rda")
-#### Seccion de trabajo---- opcionales ####
-term <- "sello"
-Check <- SIACSICOP1519[grepl(term, SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),] # check words in database
-Check  <- Check %>% select(DESC_BIEN_SERVICIO, tech)
-findAssocs(dtm, terms = term, corlimit = 0.2)
+spanish_stop_words <- data_frame(word = tm::stopwords("spanish"),lexicon = "custom")
+#### Generación de Corpus ####
+corpus <- SIACSICOP1519 %>%
+  mutate(text = gsub(x = DESC_BIEN_SERVICIO, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = "")) %>%
+  select(text) %>%
+  mutate(id = row_number()) %>%
+  unnest_tokens(word, text) %>%
+  anti_join(spanish_stop_words) 
 
-#### add data to d
-d[6,4] <-"Si"
-write.xlsx(d, "d.xlsx")
+#### Cuenta de palabras ####
+count_corpus <- corpus %>%
+  count(word, sort = TRUE) 
 
-####Primera iteración  ####
-#para decidir que terminos eliminar y con que condiciones 
-### Eliminated data ###
+####Counting words  among sections ####
+word_pairs <- corpus  %>%
+  pairwise_count(word, id, sort = TRUE)
+word_pairs
+#### Correlate among sections ####
+word_cors <- corpus %>%
+  group_by(word) %>%
+  filter(n() >= 100) %>%
+  pairwise_cor(word, id, sort = TRUE)
+
+#### Correlate Specific terms ####
+word_1 ="acrilica"
+
+word_cors %>%
+  filter(item1 == word_1)
+word_cors %>%
+  filter(item1 %in% c(word_1)) %>%
+  group_by(item1) %>%
+  top_n(6) %>%
+  ungroup() %>%
+  mutate(item2 = reorder(item2, correlation)) %>%
+  ggplot(aes(item2, correlation)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ item1, scales = "free") +
+  coord_flip()
+
+#### Eliminated data ####
 SIACSICOP1519$tech <- ifelse(grepl(paste(filter(eliminate, eliminate == "Si")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),"No","No_Se")
 ## Especiales
 SIACSICOP1519$tech[grepl('(^(?=.*\\bmarcador\\b)(?!.*\\breloj\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"#MARCADOR SIN RELOJ
@@ -56,9 +77,36 @@ SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\impresora multifunciona
                                                SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Equipo informático y accesorios"
 save(SIACSICOP1519, file = "SIACSICOP1519.rda")
 
-# Word Cloud (optional vizualization)
-set.seed(1234) 
-wordcloud(words = slice(d, -1:-155)$word, freq = slice(d, -1:-155)$freq, min.freq = 1,
-          max.words=200, random.order=FALSE, rot.per=0.35, 
-          colors=brewer.pal(8, "Dark2"))
+#### word cloud ####
+set.seed(2016)
+
+word_cors %>%
+  filter(correlation > .15) %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha = correlation), show.legend = FALSE) +
+  geom_node_point(color = "lightblue", size = 5) +
+  geom_node_text(aes(label = name), repel = TRUE) +
+  theme_void()
+
+
+#### Bigram analysis  #####
+servicio_bigrams <- corpus %>%
+  unnest_tokens(bigram, word, token = "ngrams", n = 2)
+
+servicio_bigrams <- servicio_bigrams %>%
+  count(bigram, sort = TRUE)
+
+bigrams_separated <- servicio_bigrams %>%
+  separate(bigram, c("word1", "word2"), sep = " ")
+
+# new bigram counts:
+bigram_counts <- bigrams_separated %>% 
+  count(word1, word2, sort = TRUE)
+
+bigram_counts
+
+#analyse Bygrams
+bigrams_separated %>%
+  filter(word2 == "servicio")
 
