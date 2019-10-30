@@ -1,11 +1,36 @@
+#install packages only once 
 #install.packages('dplyr')
 #install.packages('tidytext')
 #install.packages('tidyr')
 #install.packages('widyr')
+#install.packages('ggplot2')
 library(dplyr)
 library(tidytext)
 library(tidyr)
 library(widyr)
+library(ggplot2)
+
+#### Procedimiento ####
+#  - instalar paquetes de nuevo -  son unos nuevos que funcionan para todos 
+#  - guardar SIACSICOP1519.Rda, d.csv, y spanish_stop_words.Rds en su folder de trabajo
+#  - 1.     Revisión de tabla “d” diario para ver palabras por categorizar. 
+#  - 2.     Filtrar por letra asignada
+#  - 3.     Comenzar por letra asignada a revisar la tabla (Si terminan con sus letras asignadas, pueden seguir, la duplicación en este caso es positiva, el lunes hablamos más de esto)
+#Letras asignadas
+#A - Fabio Darío Zarza Vera
+#D - Franco Pérez
+#G - Juan Pablo Espinoza Cabrera
+#J - Andrés Emilio Martínez Landaverde
+#M- Laura Rebeca Monge Alvarado
+#P - Pablo Argueta Juárez
+#S – Rubén Ramírez
+#V- Vladimir Eduardo Luna
+
+#4. Correr el codigo hasta la sección de #Correlate among sections#
+#5. Utilizar la seccion de #correlate Specific Terms# para evaluar correlaciones de palabras seleccionadas
+#6. Categorizar las palabras según criterio en la columna [Eliminate] como {No, Tal vez, Si}
+#7. Categorizar las palabras según criterio en la columna [CAT_BIEN_SERVICIO]
+
 ####Load data####
 load("~/Dropbox/Contraloria/Text Mining R/CGR/SIACSICOP1519.Rda")
 spanish_stop_words <- readRDS("~/Dropbox/Contraloria/Text Mining R/CGR/spanish_stop_words.Rds")
