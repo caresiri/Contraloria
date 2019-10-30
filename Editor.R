@@ -27,9 +27,11 @@ library(ggplot2)
 #V- Vladimir Eduardo Luna
 
 #4. Correr el codigo hasta la sección de #Correlate among sections#
-#5. Utilizar la seccion de #correlate Specific Terms# para evaluar correlaciones de palabras seleccionadas
-#6. Categorizar las palabras según criterio en la columna [Eliminate] como {No, Tal vez, Si}
-#7. Categorizar las palabras según criterio en la columna [CAT_BIEN_SERVICIO]
+#5. cambie la palabra word_1 para evaluar correlaciones de palabras seleccionadas
+#6. Revisar las correlaciones y la tabla Check para entender el contexto
+#7. Si le sale el error (Faceting variables must have at least one value), significa que esa palabra no se correlaciona con mas de 20 palabras, revisar la tabla check solamente
+#8. Categorizar las palabras según criterio en la columna [Eliminate] como {No, Tal vez, Si}
+#9. Categorizar las palabras según criterio en la columna [CAT_BIEN_SERVICIO]
 
 ####Load data####
 load("~/Dropbox/Contraloria/Text Mining R/CGR/SIACSICOP1519.Rda")
@@ -51,16 +53,14 @@ word_pairs <- corpus  %>%
   pairwise_count(word, id, sort = TRUE)
 word_pairs
 #### Correlate among sections ####
+word_1 ="suspension"
 word_cors <- corpus %>%
   group_by(word) %>%
-  filter(n() >= 100) %>%
-  pairwise_cor(word, id, sort = TRUE)
-
-#### Correlate Specific terms ####
-word_1 ="acrilica"
-
-word_cors %>%
+  filter(n() >= 20) %>%
+  pairwise_cor(word, id, sort = TRUE) %>%
   filter(item1 == word_1)
+#### Correlate Specific terms ####
+
 word_cors %>%
   filter(item1 %in% c(word_1)) %>%
   group_by(item1) %>%
@@ -71,6 +71,8 @@ word_cors %>%
   geom_bar(stat = "identity") +
   facet_wrap(~ item1, scales = "free") +
   coord_flip()
+Check <- SIACSICOP1519[grepl(word_1, SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),] # check words in database
+Check  <- Check %>% select(DESC_BIEN_SERVICIO, tech)
 
 #### Eliminated data ####
 SIACSICOP1519$tech <- ifelse(grepl(paste(filter(eliminate, eliminate == "Si")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),"No","No_Se")
