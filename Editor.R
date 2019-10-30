@@ -8,7 +8,7 @@ library(tidyr)
 library(widyr)
 ####Load data####
 load("~/Dropbox/Contraloria/Text Mining R/CGR/SIACSICOP1519.Rda")
-spanish_stop_words <- data_frame(word = tm::stopwords("spanish"),lexicon = "custom")
+spanish_stop_words <- readRDS("~/Dropbox/Contraloria/Text Mining R/CGR/spanish_stop_words.Rds")
 #### Generación de Corpus ####
 corpus <- SIACSICOP1519 %>%
   mutate(text = gsub(x = DESC_BIEN_SERVICIO, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = "")) %>%
