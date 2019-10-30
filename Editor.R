@@ -12,7 +12,7 @@ library(ggplot2)
 
 #### Procedimiento ####
 #  - instalar paquetes de nuevo -  son unos nuevos que funcionan para todos 
-#  - guardar SIACSICOP1519.Rda, d.csv, y spanish_stop_words.Rds en su folder de trabajo
+#  - guardar SIACSICOP1519.Rda, d.csv, mining.xlsx, y spanish_stop_words.Rds en su folder de trabajo
 #  - 1.     Revisión de tabla “d” diario para ver palabras por categorizar. 
 #  - 2.     Filtrar por letra asignada
 #  - 3.     Comenzar por letra asignada a revisar la tabla (Si terminan con sus letras asignadas, pueden seguir, la duplicación en este caso es positiva, el lunes hablamos más de esto)
