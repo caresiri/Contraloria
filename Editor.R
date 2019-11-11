@@ -9,6 +9,7 @@ library(tidytext)
 library(tidyr)
 library(widyr)
 library(ggplot2)
+setwd("/Users/carlossiri/Dropbox/Contraloria/Text Mining R/CGR")
 
 #### Procedimiento ####
 #  - instalar paquetes de nuevo -  son unos nuevos que funcionan para todos 
@@ -34,8 +35,8 @@ library(ggplot2)
 #9. Categorizar las palabras según criterio en la columna [CAT_BIEN_SERVICIO]
 
 ####Load data####
-load("~/Dropbox/Contraloria/Text Mining R/CGR/SIACSICOP1519.Rda")
-spanish_stop_words <- readRDS("~/Dropbox/Contraloria/Text Mining R/CGR/spanish_stop_words.Rds")
+load("SIACSICOP1519.Rda")
+spanish_stop_words <- readRDS("spanish_stop_words.Rds")
 #### Generación de Corpus ####
 corpus <- SIACSICOP1519 %>%
   mutate(text = gsub(x = DESC_BIEN_SERVICIO, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = "")) %>%
