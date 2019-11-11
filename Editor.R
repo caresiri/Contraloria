@@ -37,8 +37,10 @@ setwd("/Users/carlossiri/Dropbox/Contraloria/Text Mining R/CGR")
 ####Load data####
 load("SIACSICOP1519.Rda")
 spanish_stop_words <- readRDS("spanish_stop_words.Rds")
+reduccion <- SIACSICOP1519 %>%
+  filter(tech == "No_Se")
 #### Generación de Corpus ####
-corpus <- SIACSICOP1519 %>%
+corpus <- reduccion %>%
   mutate(text = gsub(x = DESC_BIEN_SERVICIO, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = "")) %>%
   select(text) %>%
   mutate(id = row_number()) %>%
@@ -54,7 +56,7 @@ word_pairs <- corpus  %>%
   pairwise_count(word, id, sort = TRUE)
 word_pairs
 #### Correlate among sections ####
-word_1 ="suspension"
+word_1 ="color"
 word_cors <- corpus %>%
   group_by(word) %>%
   filter(n() >= 20) %>%
@@ -72,24 +74,36 @@ word_cors %>%
   geom_bar(stat = "identity") +
   facet_wrap(~ item1, scales = "free") +
   coord_flip()
-Check <- SIACSICOP1519[grepl(word_1, SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),] # check words in database
+Check <- SIACSICOP1519[grepl(word_1, reduccion$DESC_BIEN_SERVICIO, perl = TRUE),] # check words in database
 Check  <- Check %>% select(DESC_BIEN_SERVICIO, tech)
 
 #### Eliminated data ####
-SIACSICOP1519$tech <- ifelse(grepl(paste(filter(eliminate, eliminate == "Si")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),"No","No_Se")
+library(NLP)
+mining <- read_excel("mining.xlsx")
+palabras_unicas <- read_excel("text_mining.xlsx", sheet = "d")
+correlaciones <- read_excel("text_mining.xlsx", sheet = "correlaciones")
+
+SIACSICOP1519$tech <- ifelse(grepl(paste(filter(palabras_unicas, eliminate == "Si")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),"No",
+                             ifelse(grepl(paste(filter(palabras_unicas, eliminate == "No")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),"Si","No_Se"))
 ## Especiales
 SIACSICOP1519$tech[grepl('(^(?=.*\\bmarcador\\b)(?!.*\\breloj\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"#MARCADOR SIN RELOJ
 
-for(i in 1:nrow(mining))
+for(i in 1:nrow(correlaciones))
 {
-  SIACSICOP1519$tech[grepl(paste("(^(?=.*\\b",as.String(mining[i,1]), "\\b)(?=.*\\b", as.String(mining[i,2]), "\\b))", sep = "")
+  SIACSICOP1519$tech[grepl(paste("(^(?=.*\\b",as.String(correlaciones[i,1]), "\\b)(?=.*\\b", as.String(correlaciones[i,2]), "\\b))", sep = "")
                            , SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
 }
 
+
+
+
 #### Categorización de Bienes y Servicios segun SICOP ####
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED <- SIACSICOP1519$CAT_BIEN_SERVICIO
-SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.impresora\\b))',  SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Equipo informático y accesorios"
-SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\busb\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Equipo informático y accesorios"
+for(i in 1:nrow(palabras_unicas))
+{
+SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl(paste("(^(?=.*\\b",as.String(palabras_unicas[i,1]),"\\b))"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = as.String(palabras_unicas[i,9])
+}
+
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\bportatil\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Equipo informático y accesorios"
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\blicencia\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Software"
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\blicencias\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Software"
