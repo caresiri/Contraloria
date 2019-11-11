@@ -83,8 +83,8 @@ mining <- read_excel("mining.xlsx")
 palabras_unicas <- read_excel("text_mining.xlsx", sheet = "d")
 correlaciones <- read_excel("text_mining.xlsx", sheet = "correlaciones")
 
-SIACSICOP1519$tech <- ifelse(grepl(paste(filter(palabras_unicas, eliminate == "Si")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),"No",
-                             ifelse(grepl(paste(filter(palabras_unicas, eliminate == "No")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE),"Si","No_Se"))
+SIACSICOP1519$tech[grepl(paste(filter(palabras_unicas, eliminate == "Si")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
+SIACSICOP1519$tech[grepl(paste(filter(palabras_unicas, eliminate == "No")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Si"
 ## Especiales
 SIACSICOP1519$tech[grepl('(^(?=.*\\bmarcador\\b)(?!.*\\breloj\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"#MARCADOR SIN RELOJ
 
@@ -93,9 +93,6 @@ for(i in 1:nrow(correlaciones))
   SIACSICOP1519$tech[grepl(paste("(^(?=.*\\b",as.String(correlaciones[i,1]), "\\b)(?=.*\\b", as.String(correlaciones[i,2]), "\\b))", sep = "")
                            , SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
 }
-
-
-
 
 #### Categorización de Bienes y Servicios segun SICOP ####
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED <- SIACSICOP1519$CAT_BIEN_SERVICIO
