@@ -9,7 +9,12 @@ library(tidytext)
 library(tidyr)
 library(widyr)
 library(ggplot2)
+library(readxl)
 setwd("/Users/carlossiri/Dropbox/Contraloria/Text Mining R/CGR")
+
+
+setwd("/Volumes/GoogleDrive/My Drive/INCAE Work Drive/Investigador/Proyectos/Contraloria/Text Mining/workstudy")
+
 
 #### Procedimiento ####
 #  - instalar paquetes de nuevo -  son unos nuevos que funcionan para todos 
@@ -18,14 +23,14 @@ setwd("/Users/carlossiri/Dropbox/Contraloria/Text Mining R/CGR")
 #  - 2.     Filtrar por letra asignada
 #  - 3.     Comenzar por letra asignada a revisar la tabla (Si terminan con sus letras asignadas, pueden seguir, la duplicación en este caso es positiva, el lunes hablamos más de esto)
 #Letras asignadas
-#A - Fabio Darío Zarza Vera
-#D - Franco Pérez
-#G - Juan Pablo Espinoza Cabrera
-#J - Andrés Emilio Martínez Landaverde
-#M- Laura Rebeca Monge Alvarado
-#P - Pablo Argueta Juárez
-#S – Rubén Ramírez
-#V- Vladimir Eduardo Luna
+#A-C Andrés Emilio Martínez Landaverde
+#D-F Pablo Argueta Juárez
+#G-I Fabio Darío Zarza Vera 
+#J-L Juan Pablo Espinoza Cabrera
+#M-O Laura Rebeca Monge Alvarado
+#P-R Franco Pérez
+#S–U Rubén Ramírez
+#V-Z Vladimir Eduardo Luna
 
 #4. Correr el codigo hasta la sección de #Correlate among sections#
 #5. cambie la palabra word_1 para evaluar correlaciones de palabras seleccionadas
@@ -83,8 +88,10 @@ mining <- read_excel("mining.xlsx")
 palabras_unicas <- read_excel("text_mining.xlsx", sheet = "d")
 correlaciones <- read_excel("text_mining.xlsx", sheet = "correlaciones")
 
+SIACSICOP1519$tech = "No_Se"
 SIACSICOP1519$tech[grepl(paste(filter(palabras_unicas, eliminate == "Si")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
 SIACSICOP1519$tech[grepl(paste(filter(palabras_unicas, eliminate == "No")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Si"
+
 ## Especiales
 SIACSICOP1519$tech[grepl('(^(?=.*\\bmarcador\\b)(?!.*\\breloj\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"#MARCADOR SIN RELOJ
 
@@ -100,7 +107,7 @@ for(i in 1:nrow(palabras_unicas))
 {
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl(paste("(^(?=.*\\b",as.String(palabras_unicas[i,1]),"\\b))"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = as.String(palabras_unicas[i,9])
 }
-
+sum(SIACSICOP1519$tech == 'No_Se')
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\bportatil\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Equipo informático y accesorios"
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\blicencia\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Software"
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\blicencias\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Software"
