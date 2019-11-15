@@ -10,8 +10,6 @@ library(tidyr)
 library(widyr)
 library(ggplot2)
 library(readxl)
-setwd("/Users/carlossiri/Dropbox/Contraloria/Text Mining R/CGR")
-
 
 setwd("/Volumes/GoogleDrive/My Drive/INCAE Work Drive/Investigador/Proyectos/Contraloria/Text Mining/workstudy")
 
