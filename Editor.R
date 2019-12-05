@@ -82,8 +82,7 @@ Check  <- Check %>% select(DESC_BIEN_SERVICIO, tech)
 
 #### Eliminated data ####
 library(NLP)
-mining <- read_excel("mining.xlsx")
-palabras_unicas <- read_excel("text_mining.xlsx", sheet = "d")
+palabras_unicas <- read_excel("text_mining.xlsx", sheet = "revisadas")
 correlaciones <- read_excel("text_mining.xlsx", sheet = "correlaciones")
 
 SIACSICOP1519$tech = "No_Se"
@@ -153,4 +152,100 @@ bigram_counts
 #analyse Bygrams
 bigrams_separated %>%
   filter(word2 == "servicio")
+
+
+
+
+#### Network Analysis ####
+#https://rpubs.com/pjmurphy/317838
+library(igraph)
+Tech_Data <- SIACSICOP1519 %>%
+  filter(tech == "Si",
+         base == "Adjudicaciones SICOP") %>%
+  select(NOMBRE_PROVEEDOR, INSTITUCION)
+
+#Generate ids for Proveedores
+Proveedores <- as.data.frame(unique(Tech_Data$NOMBRE_PROVEEDOR))
+id <- paste("P",rownames(Proveedores), sep ="")
+Proveedores <- cbind(ID_Proveedor=id, Proveedores)
+names(Proveedores)[2]<-"NOMBRE_PROVEEDOR"
+
+#Generate ids for Instituciones
+Institucion <- as.data.frame(unique(Tech_Data$INSTITUCION))
+id <- paste("I",rownames(Institucion), sep ="")
+Institucion <- cbind(ID_Institucion=id, Institucion)
+names(Institucion)[2]<-"INSTITUCION"
+
+Tech_Data <- merge(Tech_Data, Proveedores, by = "NOMBRE_PROVEEDOR")
+Tech_Data <- merge(Tech_Data, Institucion, by = "INSTITUCION")
+
+Tech_Data <- Tech_Data %>% select(ID_Institucion, ID_Proveedor)
+
+g <- graph.data.frame(Tech_Data, directed = FALSE)
+bipartite_mapping(g)
+V(g)$type <- bipartite_mapping(g)$type
+plot(g)
+
+V(g)$color <- ifelse(V(g)$type, "lightblue", "salmon")
+V(g)$shape <- ifelse(V(g)$type, "circle", "square")
+E(g)$color <- "lightgray"
+
+plot(g, vertex.label.cex = 0.8, vertex.label.color = "black")
+
+
+# bipartite-specific layout.
+plot(g, layout=layout.bipartite, vertex.size=5, vertex.label.cex=0.6)
+
+
+# bipartite-specific layout sizing by centrality 
+types <- V(g)$type                 ## getting each vertex `type` let's us sort easily
+deg <- degree(g)
+bet <- betweenness(g)
+clos <- closeness(g)
+eig <- eigen_centrality(g)$vector
+
+cent_df <- data.frame(types, deg, bet, clos, eig)
+
+cent_df[order(cent_df$type, decreasing = TRUE),] ## sort w/ `order` by `type`
+
+V(g)$eig <- eig
+V(g)$bet <- bet
+V(g)$size <- betweenness(g)/10000
+V(g)$label.cex <- betweenness(g)/10000000
+
+plot(g, layout=layout.bipartite, vertex.label = NA)
+
+
+#Bipartitate_matrix
+bipartite_matrix <- as_incidence_matrix(g)
+t(bipartite_matrix)
+
+event_matrix_prod <- t(bipartite_matrix) %*% bipartite_matrix 
+## crossprod() does same and scales better, but this is better to learn at first at first so you understand the method
+
+diag(event_matrix_prod) <- 0
+
+proveedores <- graph_from_adjacency_matrix(event_matrix_prod, 
+                                              mode = "undirected", 
+                                              weighted = TRUE)
+
+E(proveedores)$weight
+
+
+types <- V(proveedores)$type                 ## getting each vertex `type` let's us sort easily
+deg <- degree(proveedores)
+bet <- betweenness(proveedores)
+eig <- eigen_centrality(proveedores)$vector
+
+cent_df <- data.frame(types, deg, bet, eig)
+
+cent_df[order(cent_df$type, decreasing = TRUE),] ## sort w/ `order` by `type`
+
+V(proveedores)$eig <- eig
+V(proveedores)$bet <- bet
+V(proveedores)$size <- betweenness(proveedores)/2000
+E(proveedores)$size <- ifelse(E(proveedores)$weight>2000,1,0.0002)
+
+#https://stackoverflow.com/questions/32857024/increasing-the-distance-between-igraph-nodes
+plot(proveedores, vertex.label = NA, ylim=c(-0.7,-0.3),xlim=c(-0.7,-0.4))
 
