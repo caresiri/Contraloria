@@ -12,7 +12,18 @@ library(ggplot2)
 library(readxl)
 
 setwd("/Volumes/GoogleDrive/My Drive/INCAE Work Drive/Investigador/Proyectos/Contraloria/Text Mining/workstudy")
-
+library(readxl)
+SIACSICOP1519 <- read_excel("adjudicacionesycompras.xlsx", 
+                                           col_types = c("text", "text", "text", 
+                                                                    "text", "text", "text", "text", "numeric", 
+                                                                    "numeric", "numeric", "text", "text", 
+                                                                    "text", "text", "numeric", "numeric", 
+                                                                    "date", "numeric", "text", "text", 
+                                                                    "text", "text", "text", "text", "numeric", 
+                                                                    "date", "text", "text", "numeric", 
+                                                                    "date", "text", "numeric", "numeric", 
+                                                                    "text", "text", "text", "text", "text", 
+                                                                    "numeric", "numeric"))
 
 #### Procedimiento ####
 #  - instalar paquetes de nuevo -  son unos nuevos que funcionan para todos 
@@ -30,6 +41,21 @@ setwd("/Volumes/GoogleDrive/My Drive/INCAE Work Drive/Investigador/Proyectos/Con
 #S–U Rubén Ramírez
 #V-Z Vladimir Eduardo Luna
 
+
+#Letras asignadas
+#A-B Ximena Rodriguez
+#C-D Daniel Corrales
+#E-F Ruben Ramirez
+#G-H Hans Fritas 
+#I-J Andres Emilio
+#K-L Vladimir
+#M-N Xavier Muñoz 
+#O-P Sergio Castro
+#Q-R Marcia
+#S-T Juan Pablo
+#U-V Pablo Argueta
+#W-Z PRebecca Monge
+
 #4. Correr el codigo hasta la sección de #Correlate among sections#
 #5. cambie la palabra word_1 para evaluar correlaciones de palabras seleccionadas
 #6. Revisar las correlaciones y la tabla Check para entender el contexto
@@ -41,7 +67,8 @@ setwd("/Volumes/GoogleDrive/My Drive/INCAE Work Drive/Investigador/Proyectos/Con
 load("SIACSICOP1519.Rda")
 spanish_stop_words <- readRDS("spanish_stop_words.Rds")
 reduccion <- SIACSICOP1519 %>%
-  filter(tech == "No_Se")
+  filter(tech == "Si") %>%
+  filter(CAT_BIEN_SERVICIO_MODIFIED == "NA")
 #### Generación de Corpus ####
 corpus <- reduccion %>%
   mutate(text = gsub(x = DESC_BIEN_SERVICIO, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = "")) %>%
@@ -85,40 +112,42 @@ library(NLP)
 palabras_unicas <- read_excel("text_mining.xlsx", sheet = "revisadas")
 correlaciones <- read_excel("text_mining.xlsx", sheet = "correlaciones")
 
+
 SIACSICOP1519$tech = "No_Se"
-SIACSICOP1519$tech[grepl(paste(filter(palabras_unicas, eliminate == "Si")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
-SIACSICOP1519$tech[grepl(paste(filter(palabras_unicas, eliminate == "No")$word, collapse="|"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Si"
+lower <- tolower(SIACSICOP1519$DESC_BIEN_SERVICIO)
+SIACSICOP1519$tech[grepl(paste(filter(palabras_unicas, eliminate == "Si")$word, collapse="|"), lower, perl = TRUE)] = "No"
+SIACSICOP1519$tech[grepl(paste(filter(palabras_unicas, eliminate == "No")$word, collapse="|"), lower, perl = TRUE)] = "Si"
 
 ## Especiales
-SIACSICOP1519$tech[grepl('(^(?=.*\\bmarcador\\b)(?!.*\\breloj\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"#MARCADOR SIN RELOJ
+SIACSICOP1519$tech[grepl('(^(?=.*\\bmarcador\\b)(?!.*\\breloj\\b))', lower, perl = TRUE)] = "No"#MARCADOR SIN RELOJ
 
 for(i in 1:nrow(correlaciones))
 {
   SIACSICOP1519$tech[grepl(paste("(^(?=.*\\b",as.String(correlaciones[i,1]), "\\b)(?=.*\\b", as.String(correlaciones[i,2]), "\\b))", sep = "")
-                           , SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "No"
+                           , lower, perl = TRUE)] = "No"
 }
 
 #### Categorización de Bienes y Servicios segun SICOP ####
-SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED <- SIACSICOP1519$CAT_BIEN_SERVICIO
+SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED <- lower
 for(i in 1:nrow(palabras_unicas))
 {
-SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl(paste("(^(?=.*\\b",as.String(palabras_unicas[i,1]),"\\b))"), SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = as.String(palabras_unicas[i,9])
+SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl(paste("(^(?=.*\\b",as.String(palabras_unicas[i,1]),"\\b))"), lower, perl = TRUE)] = as.String(palabras_unicas[i,9])
 }
 sum(SIACSICOP1519$tech == 'No_Se')
-SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\bportatil\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Equipo informático y accesorios"
-SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\blicencia\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Software"
-SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\blicencias\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Software"
-SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\bsoftware\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Software"
-SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\bmantenimiento\\b))', SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Servicios informáticos, de computación, audio y video"
+SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\bportatil\\b))', lower, perl = TRUE)] = "Equipo informático y accesorios"
+SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\blicencia\\b))', lower, perl = TRUE)] = "Software"
+SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\blicencias\\b))', lower, perl = TRUE)] = "Software"
+SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\bsoftware\\b))', lower, perl = TRUE)] = "Software"
+SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\bmantenimiento\\b))', lower, perl = TRUE)] = "Servicios informáticos, de computación, audio y video"
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\bmantenimiento y reparacion de equipo de computo y sistemas\\b))', 
-                                               SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Servicios informáticos, de computación, audio y video"
+                                               lower, perl = TRUE)] = "Servicios informáticos, de computación, audio y video"
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\servicio\\b))', 
-                                               SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Servicios informáticos, de computación, audio y video"
+                                               lower, perl = TRUE)] = "Servicios informáticos, de computación, audio y video"
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\servicios\\b))', 
-                                               SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Servicios informáticos, de computación, audio y video"
+                                               lower, perl = TRUE)] = "Servicios informáticos, de computación, audio y video"
 SIACSICOP1519$CAT_BIEN_SERVICIO_MODIFIED[grepl('(^(?=.*\\impresora multifuncional(fax, copiadora,escaner)\\b))', 
-                                               SIACSICOP1519$DESC_BIEN_SERVICIO, perl = TRUE)] = "Equipo informático y accesorios"
-save(SIACSICOP1519, file = "SIACSICOP1519.rda")
+                                               lower, perl = TRUE)] = "Equipo informático y accesorios"
+save(SIACSICOP1519, file = "SIACSICOP1519.Rda")
 
 #### word cloud ####
 set.seed(2016)
@@ -248,4 +277,40 @@ E(proveedores)$size <- ifelse(E(proveedores)$weight>2000,1,0.0002)
 
 #https://stackoverflow.com/questions/32857024/increasing-the-distance-between-igraph-nodes
 plot(proveedores, vertex.label = NA, ylim=c(-0.7,-0.3),xlim=c(-0.7,-0.4))
+
+
+
+
+#### Divide data for class
+
+write.csv(SIACSICOP1519, "SIACSICOP.csv")
+
+SIAC <- SIACSICOP1519 %>% 
+  filter (base == "Compras SIAC") %>%
+  select(Añodeadjudicación, INSTITUCION,  DESC_PROCEDIMIENTO, DESC_BIEN_SERVICIO, CEDULA_PROVEEDOR, NOMBRE_PROVEEDOR, CANTIDAD, Cantidadadjudicada, Fechadeadjudicación, MONTO_ADJU_CRC, CED_INSTITUCION, OBJ_GASTO, DESC_GASTO, DESC_GASTO_0, DESC_GASTO_1, tech, CAT_BIEN_SERVICIO_MODIFIED)
+
+write.csv(SIAC, "SIAC.csv")
+
+AdjudicacionesSICOP <- SIACSICOP1519 %>% 
+  filter( base == "Adjudicaciones SICOP") %>%
+  select(Añodeadjudicación, INSTITUCION, DESC_PROCEDIMIENTO, DESC_BIEN_SERVICIO, CEDULA_PROVEEDOR, NOMBRE_PROVEEDOR, 
+         CANTIDAD, MONTO_ADJU_CRC, CED_INSTITUCION, CARTEL_NO, INST_CARTEL_NO, PARTIDA, LINEA, FECHA_ADJUD_FIRME, COD_BIEN_SERVICIO, MONEDA_ADJUDICADA, MONTO_ADJUDICADO, CAT_BIEN_SERVICIO,  DESC_GASTO, DESC_GASTO_0, DESC_GASTO_1, tech, CAT_BIEN_SERVICIO_MODIFIED)
+
+write.csv(AdjudicacionesSICOP, "AdjudicacionesSICOP.csv")
+
+
+OfertasSICOP <- SIACSICOP1519 %>% 
+  filter( base == "Ofertas SICOP")  %>%
+  select(Añodeadjudicación, INSTITUCION, DESC_PROCEDIMIENTO, DESC_BIEN_SERVICIO, CEDULA_PROVEEDOR, NOMBRE_PROVEEDOR, CANTIDAD, CED_INSTITUCION,
+         CARTEL_NO, INST_CARTEL_NO, PARTIDA, LINEA, COD_BIEN_SERVICIO, CAT_BIEN_SERVICIO,  DESC_GASTO, DESC_GASTO_0, DESC_GASTO_1, FECHA_PRESENTACION, MONEDA_PRESENTADA, MONTO_PRESENTADO, MONTO_PRESENT_CRC, tech, CAT_BIEN_SERVICIO_MODIFIED)
+write.csv(OfertasSICOP, "OfertasSICOP.csv")
+
+
+
+
+
+
+
+
+
 
