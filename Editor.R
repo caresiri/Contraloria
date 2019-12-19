@@ -67,8 +67,7 @@ SIACSICOP1519 <- read_excel("adjudicacionesycompras.xlsx",
 load("SIACSICOP1519.Rda")
 spanish_stop_words <- readRDS("spanish_stop_words.Rds")
 reduccion <- SIACSICOP1519 %>%
-  filter(tech == "Si") %>%
-  filter(CAT_BIEN_SERVICIO_MODIFIED == "NA")
+  filter(tech == "No_Se") 
 #### Generación de Corpus ####
 corpus <- reduccion %>%
   mutate(text = gsub(x = DESC_BIEN_SERVICIO, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = "")) %>%
@@ -104,7 +103,7 @@ word_cors %>%
   geom_bar(stat = "identity") +
   facet_wrap(~ item1, scales = "free") +
   coord_flip()
-Check <- SIACSICOP1519[grepl(word_1, reduccion$DESC_BIEN_SERVICIO, perl = TRUE),] # check words in database
+Check <- reduccion[grepl(word_1, reduccion$DESC_BIEN_SERVICIO, perl = TRUE),] # check words in database
 Check  <- Check %>% select(DESC_BIEN_SERVICIO, tech)
 
 #### Eliminated data ####
