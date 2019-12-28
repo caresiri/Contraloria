@@ -15,7 +15,7 @@ library(ggplot2)
 library(readxl)
 library(easycsv)
 
-setwd(easycsv::choose_dir())
+setwd(easycsv::choose_dir()) ## seleccione el directorio con el que va a trabajar
 #### Procedimiento ####
 #library(readxl)
 #SIACSICOP1519 <- read_excel("adjudicacionesycompras.xlsx", 
