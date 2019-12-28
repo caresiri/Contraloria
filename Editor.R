@@ -4,13 +4,18 @@
 #install.packages('tidyr')
 #install.packages('widyr')
 #install.packages('ggplot2')
+list.of.packages <- c("dplyr", "tidytext", "tidyr", "widyr","ggplot2", "readxl", "easycsv", "NLP")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
 library(dplyr)
 library(tidytext)
 library(tidyr)
 library(widyr)
 library(ggplot2)
 library(readxl)
-setwd("/Volumes/GoogleDrive/My Drive/INCAE Work Drive/Investigador/Proyectos/Contraloria/Text Mining/workstudy")
+library(easycsv)
+
+setwd(easycsv::choose_dir())
 #### Procedimiento ####
 #library(readxl)
 #SIACSICOP1519 <- read_excel("adjudicacionesycompras.xlsx", 
