@@ -79,7 +79,7 @@ reduccion <- SIACSICOP1519 %>%
 corpus <- reduccion %>%
   mutate(text = gsub(x = DESC_BIEN_SERVICIO, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = "")) %>%
   select(text) %>%
-  mutate(id = row_number()) %>%
+  mutate(id = as.character(row_number())) %>%
   unnest_tokens(word, text) %>%
   anti_join(spanish_stop_words) 
 
