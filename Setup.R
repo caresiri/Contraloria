@@ -1,0 +1,22 @@
+#install packages only once 
+#install.packages('dplyr')
+#install.packages('tidytext')
+#install.packages('tidyr')
+#install.packages('widyr')
+#install.packages('ggplot2')
+list.of.packages <- c("dplyr", "tidytext", "tidyr", "widyr","ggplot2", "readxl", "easycsv", "NLP")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+library(dplyr)
+library(tidytext)
+library(tidyr)
+library(widyr)
+library(ggplot2)
+library(readxl)
+library(easycsv)
+library(NLP)
+setwd(easycsv::choose_dir()) ## seleccione el directorio con el que va a trabajar
+load("SIACSICOP1519.Rda")
+spanish_stop_words <- readRDS("spanish_stop_words.Rds")
+palabras_unicas <- read_excel("text_mining.xlsx", sheet = "revisadas")
+correlaciones <- read_excel("text_mining.xlsx", sheet = "correlaciones")
