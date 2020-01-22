@@ -1,9 +1,3 @@
-#install packages only once 
-#install.packages('dplyr')
-#install.packages('tidytext')
-#install.packages('tidyr')
-#install.packages('widyr')
-#install.packages('ggplot2')
 list.of.packages <- c("dplyr", "tidytext", "tidyr", "widyr","ggplot2", "readxl", "easycsv", "NLP")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
