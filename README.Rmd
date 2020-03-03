@@ -119,17 +119,12 @@ Check  <- Check %>% select(DESC_BIEN_SERVICIO, tech)
 
 ```
 
-=======
->>>>>>> a8df5f1a89851c69c670a4869150838737036632
-
 ## Text-Mining
 
 ###Categorización de palabras
 
 El proceso de categorización de palabras fue el siguiente:
 
-<<<<<<< HEAD
-###
 * El proceso inicia por desagregar cada palabra de una descripción de servicio en palabras individuales con un número correlativo que las identifica.
 
 * Posteriormente se realiza un trabajo de clasificación para cada palabra. Se relacionan bases de datos de términos que son reconocidos como palabras asociadas a tecnología que [No] se eliminan de la base datos, otras que [Si] se eliminan y otras que [Talvez] se pueden eliminar pero no se tiene un criterio definitivo aún. Otras palabras se clasifican como numéricas o palabras genéricas del idioma castellano. 
@@ -142,7 +137,3 @@ El proceso de categorización de palabras fue el siguiente:
 head(Stats)   
 ```
 
-
-
-=======
->>>>>>> a8df5f1a89851c69c670a4869150838737036632
