@@ -239,12 +239,16 @@ library(NLP)
     ##     annotate
 
 ``` r
+<<<<<<< HEAD
 library(stringr)
+=======
+>>>>>>> a8df5f1a89851c69c670a4869150838737036632
 setwd(easycsv::choose_dir()) ## seleccione el directorio con el que va a trabajar
 load("SIACSICOP1519.Rda")
 spanish_stop_words <- readRDS("spanish_stop_words.Rds")
 palabras_unicas <- read_excel("text_mining.xlsx", sheet = "revisadas")
 correlaciones <- read_excel("text_mining.xlsx", sheet = "correlaciones")
+<<<<<<< HEAD
 places <- read_excel("Places.xlsx")
 Stats <- read_excel("Stats.xlsx")
 ```
@@ -292,6 +296,8 @@ word_cors %>%
 
 Check <- reduccion[grepl(word_1, reduccion$DESC_BIEN_SERVICIO, perl = TRUE),] # check words in database
 Check  <- Check %>% select(DESC_BIEN_SERVICIO, tech)
+=======
+>>>>>>> a8df5f1a89851c69c670a4869150838737036632
 ```
 
 ## Text-Mining
@@ -299,6 +305,7 @@ Check  <- Check %>% select(DESC_BIEN_SERVICIO, tech)
 \#\#\#Categorización de palabras
 
 El proceso de categorización de palabras fue el siguiente:
+<<<<<<< HEAD
 
 ### 
 
@@ -334,3 +341,5 @@ head(Stats)
     ## 1 Si    89445      0.448
     ## 2 No_Se 58777      0.294
     ## 3 No    51361      0.257
+=======
+>>>>>>> a8df5f1a89851c69c670a4869150838737036632

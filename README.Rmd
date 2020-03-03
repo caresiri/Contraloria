@@ -72,6 +72,7 @@ Public value can be described in terms of six general types that capture the ran
 ```{r, code=readLines("Setup.R")}
 ```
 
+<<<<<<< HEAD
 ```{r, eval=F, echo=T}
 ####Load data####
 spanish_stop_words <- readRDS("spanish_stop_words.Rds")
@@ -118,6 +119,8 @@ Check  <- Check %>% select(DESC_BIEN_SERVICIO, tech)
 
 ```
 
+=======
+>>>>>>> a8df5f1a89851c69c670a4869150838737036632
 
 ## Text-Mining
 
@@ -125,6 +128,7 @@ Check  <- Check %>% select(DESC_BIEN_SERVICIO, tech)
 
 El proceso de categorización de palabras fue el siguiente:
 
+<<<<<<< HEAD
 ###
 * El proceso inicia por desagregar cada palabra de una descripción de servicio en palabras individuales con un número correlativo que las identifica.
 
@@ -140,3 +144,5 @@ head(Stats)
 
 
 
+=======
+>>>>>>> a8df5f1a89851c69c670a4869150838737036632
