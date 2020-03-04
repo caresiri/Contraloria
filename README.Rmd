@@ -73,6 +73,7 @@ Public value can be described in terms of six general types that capture the ran
 
 ```{r code=readLines("Import Files.R")}
 ```
+<<<<<<< HEAD
 
 ### Methods
 
@@ -136,4 +137,69 @@ Radiográfica Costarricense (RACSA) was discovered to be a subsidiary of state-o
 ### Recommendations
 
 This analysis only looked at the top 10 most active institutions, but anomalies can be present throughout the entire system. SICOP auditing standards should implement systematic controls to raise automatic alerts for the following situations: 1) offers are made with no competition, 2) providers are entering the 90% success rate, and 3) amounts are larger than the category average. These alerts should initiate a revision protocol before contracting to ensure that the correct processes were followed. These alerts can be documented in additional columns with simple binary code. Additionally, in order to make working with this information more intuitive, the data dictionary should be formalized, standardized and complemented with a process flow of the activities for which data is collected. Definitions and nomenclature will be very importance to facilitate and promote usage of this data. 
+=======
+## Text-Mining
+
+###Categorización de palabras
+
+El proceso de categorización de palabras fue el siguiente:
+
+```{r, eval=F, echo=T}
+####Load data####
+spanish_stop_words <- readRDS("spanish_stop_words.Rds")
+reduccion <- SIACSICOP1519
+reduccion$DESC_BIEN_SERVICIO <- tolower(reduccion$DESC_BIEN_SERVICIO)
+#### Generación de Corpus ####
+corpus <- reduccion %>%
+  mutate(text = gsub(x = DESC_BIEN_SERVICIO, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = "")) %>%
+  select(text) %>%
+  mutate(id = as.character(row_number())) %>%
+  unnest_tokens(word, text) %>%
+  anti_join(spanish_stop_words) 
+
+#### Cuenta de palabras ####
+count_corpus <- corpus %>%
+  count(word, sort = TRUE) 
+
+####Counting words  among sections ####
+word_pairs <- corpus  %>%
+  pairwise_count(word, id, sort = TRUE)
+word_pairs
+#### Correlate among sections ####
+word_1 ="caja"
+word_cors <- corpus %>%
+  group_by(word) %>%
+  filter(n() >= 20) %>%
+  pairwise_cor(word, id, sort = TRUE) %>%
+  filter(item1 == word_1)
+#### Correlate Specific terms ####
+word_cors %>%
+  filter(item1 %in% c(word_1)) %>%
+  group_by(item1) %>%
+  top_n(6) %>%
+  ungroup() %>%
+  mutate(item2 = reorder(item2, correlation)) %>%
+  ggplot(aes(item2, correlation)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ item1, scales = "free") +
+  coord_flip()
+
+
+Check <- reduccion[grepl(word_1, reduccion$DESC_BIEN_SERVICIO, perl = TRUE),] # check words in database
+Check  <- Check %>% select(DESC_BIEN_SERVICIO, tech)
+
+```
+
+###
+* El proceso inicia por desagregar cada palabra de una descripción de servicio en palabras individuales con un número correlativo que las identifica.
+
+* Posteriormente se realiza un trabajo de clasificación para cada palabra. Se relacionan bases de datos de términos que son reconocidos como palabras asociadas a tecnología que [No] se eliminan de la base datos, otras que [Si] se eliminan y otras que [Talvez] se pueden eliminar pero no se tiene un criterio definitivo aún. Otras palabras se clasifican como numéricas o palabras genéricas del idioma castellano. 
+
+* Además, se identifican palabras que se encuentran en una base de datos de provincias, cantones y distritos. Estas palabras carecen de sentido para el análisis y se tratan como lugares. 
+
+* Ya con la clasificación de las palabras que componen una descripción del bien o servicio que se desea adquirir. Para cada línea se genera el porcentaje de palabras como Tecnológico, No Tecnológico y Otros.  
+
+
+
+>>>>>>> bf521825f6f39e3410dcf70efe9584354011d730
 
