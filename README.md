@@ -123,3 +123,156 @@ value generators consists of (Harrison et al., 2011):
   - collaboration – frequency or duration of activities in which more
     than one set of stakeholders share responsibility or authority for
     decisions about operation, policies, or actions of government.
+
+<!-- end list -->
+
+``` r
+setwd("./Tablas")
+library(readxl)
+library(dplyr)
+```
+
+    ## 
+    ## Attaching package: 'dplyr'
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     filter, lag
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     intersect, setdiff, setequal, union
+
+``` r
+Adj_2015 <- read_excel("Reporte adjudicaciones x codigo catalogo 2015.xlsx")
+Adj_2016 <- read_excel("Reporte adjudicaciones x codigo catalogo 2016.xlsx")
+Adj_2017 <- read_excel("Reporte adjudicaciones x codigo catalogo 2017.xlsx")
+Adj_2018 <- read_excel("Reporte adjudicacioenes x codigo catalogo 2018.xlsx")
+Adj_2019 <- read_excel("Reporte adjudicacioenes x codigo catalogo 2019.xlsx")
+
+
+Of_2015 <- read_excel("Reporte ofertas presentadas x codigo catalogo 2015.xlsx")
+Of_2016 <- read_excel("Reporte ofertas presentadas x codigo catalogo 2016.xlsx")
+Of_2017 <- read_excel("Reporte ofertas presentadas x codigo catalogo 2017.xlsx")
+Of_2018_19 <- read_excel("Reporte ofertas x codigo catalogo 2018-2019.xlsx")
+
+SIAC_15_17 <- read_excel("SIAC 2015-2017.xlsx")
+SIAC_18_19 <- read_excel("ComprasSIAC.xls")
+
+SIAC_18_19$`Año de adjudicación` <- as.numeric(SIAC_18_19$`Año de adjudicación`)
+
+Adj_Total <- bind_rows(Adj_2015, Adj_2016, Adj_2017, Adj_2018, Adj_2019)
+Of_Total <- bind_rows(Of_2015, Of_2016, Of_2017, Of_2018_19)
+SIAC_Total <-bind_rows(SIAC_15_17,SIAC_18_19)
+
+###Prepare for join 
+SIAC_Total$`Clave de la línea del procedimiento`<- substr(SIAC_Total$`Clave de la línea del procedimiento`,1,10)
+SIAC_Total$OBJ_GASTO <- substr(SIAC_Total$`Subpartida (COG)(AC)`,1,7)
+SIAC_Total$`Subpartida (COG)(AC)`<- substr(SIAC_Total$`Subpartida (COG)(AC)`,10,100)
+SIAC_Total <- SIAC_Total %>% rename(INSTITUCION = `Nombre de la entidad madre`,
+                                    DESC_PROCEDIMIENTO = `Objeto contractual`,
+                                    DESC_BIEN_SERVICIO = `Descripción del bien o servicio`,
+                                    CEDULA_PROVEEDOR = `Cédula del adjudicatario`,
+                                    NOMBRE_PROVEEDOR = `Nombre del adjudicatario`,
+                                    CANTIDAD = `Cantidad licitada`,
+                                    FECHA_ADJUD_FIRME = `Fecha de adjudicación`,
+                                    MONTO_ADJU_CRC = `Monto adjudicados`,
+                                    CED_INSTITUCION = `Clave de la línea del procedimiento`,
+                                    DESC_GASTO = `Subpartida (COG)(AC)`)
+SIAC_Total$CEDULA_PROVEEDOR <- as.character(SIAC_Total$CEDULA_PROVEEDOR)
+
+Adj_Of <- bind_rows(Adj_Total, Of_Total)
+Adj_Of$CAT_BIEN_SERVICIO <- ifelse(substr(Adj_Of$COD_BIEN_SERVICIO,1,4)=="8111","Servicios informáticos, de computación, audio y video",
+                                   ifelse(substr(Adj_Of$COD_BIEN_SERVICIO,1,2)=="43","Telecomunicaciones y radiofusión de de tecnología de la información",
+                                          ifelse(substr(Adj_Of$COD_BIEN_SERVICIO,1,4)=="8116","Entrega de Servicios de Tecnología de Información",
+                                                 ifelse(substr(Adj_Of$COD_BIEN_SERVICIO,1,4)=="4319","Dispositivos de comunicaciones y accesorios",
+                                                        ifelse(substr(Adj_Of$COD_BIEN_SERVICIO,1,4)=="4320","Componentes para tecnología de la información, difusión o telecomunicaciones",
+                                                               ifelse(substr(Adj_Of$COD_BIEN_SERVICIO,1,4)=="4321","Equipo informático y accesorios",
+                                                                      ifelse(substr(Adj_Of$COD_BIEN_SERVICIO,1,4)=="4322","Equipos de redes de voz, multimedia, o plataformas y accesorios",
+                                                                             ifelse(substr(Adj_Of$COD_BIEN_SERVICIO,1,4)=="4323","Software",NA))))))))
+
+
+Adj_Of$'Año de adjudicación'<- as.numeric(paste("20",substr(Adj_Of$FECHA_ADJUD_FIRME,7,8), sep=""))
+```
+
+    ## Warning: NAs introduced by coercion
+
+``` r
+SIAC_Total$FECHA_ADJUD_FIRME <- as.character(SIAC_Total$FECHA_ADJUD_FIRME)
+
+SIACSICOP1519  <-bind_rows(Adj_Of, SIAC_Total)
+setwd('..')
+```
+
+## Text-Mining
+
+\#\#\#Categorización de palabras
+
+El proceso de categorización de palabras fue el siguiente:
+
+``` r
+####Load data####
+spanish_stop_words <- readRDS("spanish_stop_words.Rds")
+reduccion <- SIACSICOP1519
+reduccion$DESC_BIEN_SERVICIO <- tolower(reduccion$DESC_BIEN_SERVICIO)
+#### Generación de Corpus ####
+corpus <- reduccion %>%
+  mutate(text = gsub(x = DESC_BIEN_SERVICIO, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = "")) %>%
+  select(text) %>%
+  mutate(id = as.character(row_number())) %>%
+  unnest_tokens(word, text) %>%
+  anti_join(spanish_stop_words) 
+
+#### Cuenta de palabras ####
+count_corpus <- corpus %>%
+  count(word, sort = TRUE) 
+
+####Counting words  among sections ####
+word_pairs <- corpus  %>%
+  pairwise_count(word, id, sort = TRUE)
+word_pairs
+#### Correlate among sections ####
+word_1 ="caja"
+word_cors <- corpus %>%
+  group_by(word) %>%
+  filter(n() >= 20) %>%
+  pairwise_cor(word, id, sort = TRUE) %>%
+  filter(item1 == word_1)
+#### Correlate Specific terms ####
+word_cors %>%
+  filter(item1 %in% c(word_1)) %>%
+  group_by(item1) %>%
+  top_n(6) %>%
+  ungroup() %>%
+  mutate(item2 = reorder(item2, correlation)) %>%
+  ggplot(aes(item2, correlation)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ item1, scales = "free") +
+  coord_flip()
+
+
+Check <- reduccion[grepl(word_1, reduccion$DESC_BIEN_SERVICIO, perl = TRUE),] # check words in database
+Check  <- Check %>% select(DESC_BIEN_SERVICIO, tech)
+```
+
+### 
+
+  - El proceso inicia por desagregar cada palabra de una descripción de
+    servicio en palabras individuales con un número correlativo que las
+    identifica.
+
+  - Posteriormente se realiza un trabajo de clasificación para cada
+    palabra. Se relacionan bases de datos de términos que son
+    reconocidos como palabras asociadas a tecnología que \[No\] se
+    eliminan de la base datos, otras que \[Si\] se eliminan y otras que
+    \[Talvez\] se pueden eliminar pero no se tiene un criterio
+    definitivo aún. Otras palabras se clasifican como numéricas o
+    palabras genéricas del idioma castellano.
+
+  - Además, se identifican palabras que se encuentran en una base de
+    datos de provincias, cantones y distritos. Estas palabras carecen de
+    sentido para el análisis y se tratan como lugares.
+
+  - Ya con la clasificación de las palabras que componen una descripción
+    del bien o servicio que se desea adquirir. Para cada línea se genera
+    el porcentaje de palabras como Tecnológico, No Tecnológico y Otros.
