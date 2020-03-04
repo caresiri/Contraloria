@@ -339,11 +339,23 @@ providers did not raise any
 1.  <https://www.diarioextra.com/Noticia/detalle/395541/denuncian-anomalias-en-unidad-del-ice>
 2.  <https://www.diarioextra.com/Noticia/detalle/395661/saturacion-amenaza-red-para-tv-paga-del-ice>
 
-### Recommendations
+\#\#\#Recomendations
 
-# This analysis only looked at the top 10 most active institutions, but anomalies can be present throughout the entire system. SICOP auditing standards should implement systematic controls to raise automatic alerts for the following situations: 1) offers are made with no competition, 2) providers are entering the 90% success rate, and 3) amounts are larger than the category average. These alerts should initiate a revision protocol before contracting to ensure that the correct processes were followed. These alerts can be documented in additional columns with simple binary code. Additionally, in order to make working with this information more intuitive, the data dictionary should be formalized, standardized and complemented with a process flow of the activities for which data is collected. Definitions and nomenclature will be very importance to facilitate and promote usage of this data.
+This analysis only looked at the top 10 most active institutions, but
+anomalies can be present throughout the entire system. SICOP auditing
+standards should implement systematic controls to raise automatic alerts
+for the following situations: 1) offers are made with no competition, 2)
+providers are entering the 90% success rate, and 3) amounts are larger
+than the category average. These alerts should initiate a revision
+protocol before contracting to ensure that the correct processes were
+followed. These alerts can be documented in additional columns with
+simple binary code. Additionally, in order to make working with this
+information more intuitive, the data dictionary should be formalized,
+standardized and complemented with a process flow of the activities for
+which data is collected. Definitions and nomenclature will be very
+importance to facilitate and promote usage of this data.
 
-## Text-Mining
+\======= \#\# Text-Mining
 
 \#\#\#Categorización de palabras
 
