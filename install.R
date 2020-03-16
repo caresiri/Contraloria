@@ -1,7 +1,0 @@
-install.packages("dplyr")
-install.packages("tidytext")
-install.packages("tidyr")
-install.packages("widyr")
-install.packages("ggplot2")
-install.packages("readxl")
-install.packages("NLP")
