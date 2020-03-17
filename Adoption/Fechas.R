@@ -3,9 +3,12 @@ library(tidyr)
 library(dplyr)
 library(ggplot2)
 library(scales)
-setwd("/Volumes/GoogleDrive/My Drive/INCAE Work Drive/Investigador/Proyectos/Contraloria/Adoption")
-reporte_registros <- read_excel("Reporte registro Institucionesr.xlsx")
-pendientes <- read_excel("implementación.xlsx", sheet = "Table 9")
+temp <- tempfile(fileext = ".zip")
+download.file("https://drive.google.com/uc?authuser=0&id=1yaXybxZAT1iPL8l_QnvrTkWxrZK_4win&export=download",temp)
+out <- unzip(temp, exdir = tempdir())
+
+reporte_registros <- read_excel(out[1])
+pendientes <- read_excel(out[3], sheet = "Table 9")
 pendientes$Fecha <- "2021-12-30"
 pendientes$Class <- "Registro"
 pendientespub <- pendientes
@@ -40,6 +43,3 @@ ggplot(df, aes(x = Fecha)) +
             geom = "step", size = 1.5) +
   scale_color_manual(values = c("#00AFBB", "#E7B800"))+
   labs(y = "f(Fecha)") 
-
-
-scale_x_date()
