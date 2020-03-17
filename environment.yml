@@ -4,3 +4,6 @@ dependencies:
   - r-base=3.6
   - r-readxl
   - r-dplyr
+  - r-tidyr
+  - r-ggplot2
+  - r-scales
