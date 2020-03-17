@@ -1,7 +1,16 @@
+<<<<<<< HEAD
 Guía Ciudadana
 ================
 
 ## Motivación
+=======
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/caresiri/Contraloria/master)
+
+Guía Ciudadana
+================
+
+## Motivación 
+>>>>>>> e1ed55975424246d7bc32a40de46b5705c3329d4
 
 This exercise was designed as part of an ongoing collaboration between
 INCAE Business School and Contraloría General de la República de Costa
@@ -17,4 +26,28 @@ information technology that was acquired or rented using public funds.
 The challenge is to propose to public officials concrete ways to add
 value based on their analysis of these data.
 
+<<<<<<< HEAD
+=======
+## Objectives
+
+  - Test and develop the basic skills for data management and
+    exploratory data analysis
+  - Recognize the benefits and drawbacks of being a power user as
+    opposed to information consumers from predefined searches in a
+    Business Intelligence platform
+  - Recognize the challenges for Open Government Initiatives in terms of
+    design, implementation and adoption
+
+
+
+
+## Acknowledgements
+
+Global MBA and EMA class of 2020 for being an engaged and enthusiastic class
+that pioneered the method. Their enthusiasm and energy further motivated
+future replications of this exercise.
+
+
+
+>>>>>>> e1ed55975424246d7bc32a40de46b5705c3329d4
 > > > > > > > bf521825f6f39e3410dcf70efe9584354011d730

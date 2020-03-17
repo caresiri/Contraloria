@@ -1,10 +1,8 @@
 library(readxl)
 library(dplyr)
-library(googledrive)
 
 temp <- tempfile(fileext = ".zip")
-dl <- drive_download(
-  as_id("1qjbm1rmLRf9jnjox1ZhO-ftkOkvKy1UH"), path = temp, overwrite = TRUE)
+download.file("https://drive.google.com/uc?authuser=0&id=1qjbm1rmLRf9jnjox1ZhO-ftkOkvKy1UH&export=download",temp)
 out <- unzip(temp, exdir = tempdir())
 
 Adj_2018 <- read_excel(out[3])
