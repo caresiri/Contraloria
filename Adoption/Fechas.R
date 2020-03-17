@@ -38,7 +38,7 @@ df$Fecha[is.na(df$Fecha)] <- "2021-12-30"
 df <- df[, c(2, 3, 4)]
 df <- rbind(df, pendientes)
 
-ggplot(df, aes(x = Fecha)) +
+g<- ggplot(df, aes(x = Fecha)) +
   stat_ecdf(aes(color = Class,linetype = Class), 
             geom = "step", size = 1.5) +
   scale_color_manual(values = c("#00AFBB", "#E7B800"))+
