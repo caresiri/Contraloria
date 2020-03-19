@@ -62,4 +62,5 @@ AdjP_filt <- AdjP %>%
   filter(Monto_Acumulado<AdjP$Monto_Acumulado[957]*.7) %>%
   select(NOMBRE_PROVEEDOR, Monto, Monto_Acumulado)
 
-AdjP_filt
+
+
