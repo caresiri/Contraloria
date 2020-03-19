@@ -1,6 +1,5 @@
 library(ggplot2)
 library(dplyr)
-<<<<<<< HEAD
 library(readxl)
 library(stringr)
 library(gridExtra)
@@ -65,7 +64,6 @@ AdjP_filt <- AdjP %>%
   select(NOMBRE_PROVEEDOR, Monto, Monto_Acumulado)
 
 AdjP_filt
-=======
 
 Adj <- Adj_Total %>% group_by(INSTITUCION) %>%
   summarise(Monto = sum(MONTO_ADJUDICADO), n = n()) %>%
@@ -90,5 +88,4 @@ AIM_Filt <- ggplot(Adj_filt, aes(x=Adj_filt$INSTITUCION)) +
   theme(axis.text.x = element_text(angle=90), axis.text=element_text(size=4)) +
   labs(title = "Pareto", subtitle = "Instituciones y Monto Adjudicado", x = 'Instituciones', y = 'Monto Adjudicado') 
 AIM_Filt
->>>>>>> bdc3032994d0cd266da5b9b8435c7c7569786173
 
