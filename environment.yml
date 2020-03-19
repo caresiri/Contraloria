@@ -7,3 +7,5 @@ dependencies:
   - r-tidyr
   - r-ggplot2
   - r-scales
+  - r-gridextra
+  - r-stringr
